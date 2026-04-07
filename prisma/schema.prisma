@@ -1,0 +1,86 @@
+// prisma/schema.prisma
+// Database schema for Local Financial Dashboard
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Main transaction record
+model Transaction {
+  id          String   @id @default(cuid())
+  date        DateTime
+  description String
+  amount      Float
+  category    String?  // Initially null, populated by AI or user
+  categoryId  String?  // Reference to custom category
+  source      String   @default("csv") // csv, manual, import
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Optional relation to custom category
+  customCategory Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([date])
+  @@index([category])
+  @@index([categoryId])
+}
+
+// Custom categories defined by user
+model Category {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  color       String?       // For chart visualization
+  isIncome    Boolean       @default(false) // Distinguish income vs expense
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  transactions Transaction[]
+  rules        CategorizationRule[]
+
+  @@index([isIncome])
+}
+
+// Rule-based categorization (fallback when AI unavailable)
+model CategorizationRule {
+  id          String   @id @default(cuid())
+  pattern     String   // Keyword or regex pattern
+  categoryId  String   // Category to assign
+  priority    Int      @default(0) // Higher priority rules applied first
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([priority])
+}
+
+// Store AI categorization memory (user corrections)
+model CategorizationMemory {
+  id          String   @id @default(cuid())
+  description String   @unique // Normalized transaction description
+  categoryId  String   // Correct category
+  confidence  Float    @default(1.0) // Confidence score
+  source      String   @default("user") // ai, user
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([description])
+}
+
+// App settings
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
