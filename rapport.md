@@ -87,9 +87,9 @@ The dashboard auto-detects columns for:
 
 ```csv
 Date,Description,Amount
-01/15/2025,SALARY DIRECT DEPOSIT,5500.00
-01/16/2025,RENT PAYMENT,-2200.00
-01/17/2025,WALMART GROCERY,-156.32
+01/15/2025,Transaction Description,100.00
+01/16/2025,Transaction Description,-50.00
+01/17/2025,Transaction Description,-25.50
 ```
 
 ## Environment Variables
